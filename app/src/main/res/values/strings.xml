@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">MusicRun</string>
+    <string name="thesisTitle">Bachelor-Thesis Kevin Blaue</string>
+    <string name="Choosing">Bitte eine Funktion wählen: Lauftraining …</string>
+    <string name="without">… ohne Unterstützung</string>
+    <string name="with">… mit Unterstützung</string>
+    <string name="information">Information Icon</string>
+    <string name="bluetoothInformation">Gerät ist nicht verbunden</string>
+    <string name="bluetoothInformationConnected">Gerät ist verbunden</string>
+    <string name="hsFlensburg">HS Flensburg Logo</string>
+    <string name="pulsIcon">Puls Icon</string>
+    <string name="puls">Puls</string>
+    <string name="previous">Zurück</string>
+    <string name="running">Training läuft</string>
+    <string name="play">Musik spielen</string>
+    <string name="next">Nächster</string>
+    <string name="endTraining">Training stoppen</string>
+    <string name="chooseRange">Bitte einen Pulsbereich wählen:</string>
+    <string name="element_text">Text</string>
+</resources>
