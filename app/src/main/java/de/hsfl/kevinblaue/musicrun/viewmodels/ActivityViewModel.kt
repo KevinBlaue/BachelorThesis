@@ -27,12 +27,11 @@ class ActivityViewModel : ViewModel() {
 
     val description: MutableLiveData<String> = MutableLiveData("")
 
-    // ToDo: Je nachdem was der Gürtel rausgibt
-    val heartBeat: MediatorLiveData<String?> = MediatorLiveData<String?>().apply {
+    val heartRate: MediatorLiveData<Int?> = MediatorLiveData<Int?>().apply {
         value = if (this.value == null) {
-            "0"
+            0
         } else {
-            handleRangeData(this.value?.toInt()!!)
+            handleRangeData(this.value!!)
             this.value
         }
     }

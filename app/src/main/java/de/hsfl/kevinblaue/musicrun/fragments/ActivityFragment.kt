@@ -3,6 +3,7 @@ package de.hsfl.kevinblaue.musicrun.fragments
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -57,18 +58,18 @@ class ActivityFragment : Fragment() {
         viewModel.description.observe(viewLifecycleOwner) {
             binding?.rangeText?.text = it
         }
-        viewModel.heartBeat.observe(viewLifecycleOwner) {
-            binding?.puls?.text = it
+        viewModel.heartRate.observe(viewLifecycleOwner) { heartRate ->
+            binding?.puls?.text = heartRate.toString()
         }
-        viewModel.isUnderRange.observe(viewLifecycleOwner) {
-            if (it && viewModel.supportType.value == 1) {
+        viewModel.isUnderRange.observe(viewLifecycleOwner) { isUnderRange ->
+            if (isUnderRange && viewModel.supportType.value == 1) {
                 pitchMusicDown()
             } else {
                 normalizePitch()
             }
         }
-        viewModel.isAboveRange.observe(viewLifecycleOwner) {
-            if (it && viewModel.supportType.value == 1) {
+        viewModel.isAboveRange.observe(viewLifecycleOwner) { isAboveRange ->
+            if (isAboveRange && viewModel.supportType.value == 1) {
                 pitchMusicUp()
             } else {
                 normalizePitch()
@@ -94,10 +95,12 @@ class ActivityFragment : Fragment() {
         stopMusic()
         currentSongId += increment
         if (currentSongId < songs.size) {
+            Log.d("PLAY_MUSIC", "Set music")
             mediaPlayer = MediaPlayer.create(context, songs[currentSongId])
 
             // Play next song if song is completed or release media player
             mediaPlayer?.setOnCompletionListener {
+                Log.d("PLAY_MUSIC", "Set next song")
                 setMusic(1)
                 playMusic()
             }
@@ -106,6 +109,7 @@ class ActivityFragment : Fragment() {
 
     private fun playMusic() {
         if (binding?.btnPlay?.text!! == getString(R.string.play)) {
+            Log.d("PLAY_MUSIC", "Play")
             viewModel.startTraining()
             mediaPlayer?.start()
             binding?.btnPlay?.text = getString(R.string.running)
@@ -136,14 +140,23 @@ class ActivityFragment : Fragment() {
     }
 
     private fun pitchMusicUp() {
-        mediaPlayer?.playbackParams = pitch.setPitch(1.25f)
+        if (mediaPlayer?.isPlaying == true) {
+            Log.d("PLAY_MUSIC", "Pitch up")
+            mediaPlayer?.playbackParams = pitch.setPitch(1.25f)
+        }
     }
 
     private fun pitchMusicDown() {
-        mediaPlayer?.playbackParams = pitch.setPitch(0.75f)
+        if (mediaPlayer?.isPlaying == true) {
+            Log.d("PLAY_MUSIC", "Pitch down")
+            mediaPlayer?.playbackParams = pitch.setPitch(0.75f)
+        }
     }
 
     private fun normalizePitch() {
-        mediaPlayer?.playbackParams = pitch.setPitch(1f)
+        if (mediaPlayer?.isPlaying == true) {
+            Log.d("PLAY_MUSIC", "Pitch normal")
+            mediaPlayer?.playbackParams = pitch.setPitch(1f)
+        }
     }
 }

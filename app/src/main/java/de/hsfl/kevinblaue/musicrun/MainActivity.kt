@@ -1,6 +1,6 @@
 package de.hsfl.kevinblaue.musicrun
 
-import android.Manifest.permission.BLUETOOTH_CONNECT
+import android.Manifest.permission.*
 import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
@@ -8,7 +8,6 @@ import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.*
-import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -18,15 +17,14 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import de.hsfl.kevinblaue.musicrun.fragments.MainMenuFragment
-import de.hsfl.kevinblaue.musicrun.services.BluetoothService
-import de.hsfl.kevinblaue.musicrun.services.MESSAGE_READ
-import de.hsfl.kevinblaue.musicrun.services.MESSAGE_STATE_CHANGE
-import de.hsfl.kevinblaue.musicrun.services.STATE_CONNECTED
+import de.hsfl.kevinblaue.musicrun.services.*
 import de.hsfl.kevinblaue.musicrun.viewmodels.ActivityViewModel
 import de.hsfl.kevinblaue.musicrun.viewmodels.MainMenuViewModel
 
 
-private const val TAG = "BLUETOOTH"
+private const val PERMISSION_REQUEST_CODE = 1
+private const val CONNECTION_TYPE = 0
+private const val POLAR = 1
 // ToDo: Mac Adresse herausfinden
 private const val ADDRESS = "E4:32:7F:1D:A7:BE"
 
@@ -35,6 +33,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private val activityViewModel: ActivityViewModel by viewModels()
     private var bluetoothAdapter: BluetoothAdapter? = null
     private var bluetoothService: BluetoothService? = null
+    private var polarBluetoothService: PolarBluetoothService? = null
     private val requestBluetooth =
         registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()) {
@@ -73,7 +72,19 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
             }
         })
 
-        requestPermissions()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                requestPermissions(arrayOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT), PERMISSION_REQUEST_CODE)
+            } else {
+                requestPermissions(arrayOf(ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
+            }
+        }
+        requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_CODE)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        polarBluetoothService?.api?.foregroundEntered()
     }
 
     override fun onDestroy() {
@@ -81,10 +92,21 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         if (bluetoothService != null) {
             bluetoothService?.stop()
         }
+        polarBluetoothService?.api?.shutDown()
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
-    private fun requestPermissions() {
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (CONNECTION_TYPE == POLAR) {
+            connectPolarDevice()
+        } else {
+            setupBluetooth()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun setupBluetooth() {
         val bluetoothManager: BluetoothManager = getSystemService(BluetoothManager::class.java)
         bluetoothAdapter = bluetoothManager.adapter
 
@@ -120,7 +142,7 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         }
     }
 
-    private val mHandler: Handler = object : Handler(Looper.getMainLooper()) {
+    private val handler: Handler = object : Handler(Looper.getMainLooper()) {
         override fun handleMessage(msg: Message)
         {
             when (msg.what) {
@@ -130,23 +152,35 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
                     }
                 }
                 MESSAGE_READ -> {
-                    val readBuf = msg.obj as ByteArray
+                    /*val readBuf = msg.obj as ByteArray
                     // construct a string from the valid bytes in the buffer
-                    val readMessage = String(readBuf, 0, msg.arg1)
-                    Log.d(TAG, readMessage)
+                    val readMessage = String(readBuf, 0, msg.arg1)*/
+
+                    // @ToDo: Take this or the one above
+                    activityViewModel.heartRate.value = msg.arg1
                 }
             }
         }
     }
 
     private fun connectToDevice() {
-
         val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(ADDRESS)
-        bluetoothService = BluetoothService(mHandler, this)
+        bluetoothService = BluetoothService(handler, this)
         if (device != null) {
             bluetoothService?.connect(device)
         }
-        activityViewModel.heartBeat.value = "75"
+        activityViewModel.heartRate.value = 75
         mainMenuViewModel.beltConnected.value = true
+    }
+
+    private fun connectPolarDevice() {
+        // Connects to nearby device and observe heart rate
+        polarBluetoothService = PolarBluetoothService(this, handler)
+        polarBluetoothService?.heartRate?.observe(this) { heartRate ->
+            activityViewModel.heartRate.value = heartRate
+        }
+        polarBluetoothService?.api?.autoConnectToDevice(
+            -50, null, null
+        )?.subscribe()
     }
 }
