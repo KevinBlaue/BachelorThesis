@@ -20,47 +20,51 @@ class PolarBluetoothService(context: Context, private val handler: Handler) {
 
     init {
         api.setApiCallback(object : PolarBleApiCallback() {
+
             override fun blePowerStateChanged(powered: Boolean) {
                 Log.d("MyApp", "BLE power: $powered")
             }
 
-            override fun deviceConnected(@NonNull polarDeviceInfo: PolarDeviceInfo) {
+            override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
                 handler.obtainMessage(MESSAGE_STATE_CHANGE, STATE_CONNECTED, -1).sendToTarget()
                 Log.d("MyApp", "CONNECTED: " + polarDeviceInfo.deviceId)
             }
 
-            override fun deviceConnecting(@NonNull polarDeviceInfo: PolarDeviceInfo) {
+            override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("MyApp", "CONNECTING: " + polarDeviceInfo.deviceId)
             }
 
-            override fun deviceDisconnected(@NonNull polarDeviceInfo: PolarDeviceInfo) {
+            override fun deviceDisconnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("MyApp", "DISCONNECTED: " + polarDeviceInfo.deviceId)
             }
 
             override fun streamingFeaturesReady(
-                @NonNull identifier: String,
-                @NonNull features: Set<DeviceStreamingFeature>
+                identifier: String,
+                features: Set<DeviceStreamingFeature>
             ) {
                 for (feature in features) {
                     Log.d("MyApp", "Streaming feature $feature is ready")
                 }
             }
 
-            override fun hrFeatureReady(@NonNull identifier: String) {
+            override fun hrFeatureReady(identifier: String) {
                 Log.d("MyApp", "HR READY: $identifier")
             }
 
             override fun disInformationReceived(identifier: String, uuid: UUID, value: String) {
+                Log.d("MyApp", "Info: $identifier $uuid $value")
             }
 
-            override fun batteryLevelReceived(@NonNull identifier: String, level: Int) {}
+            override fun batteryLevelReceived(identifier: String, level: Int) {
+                Log.d("MyApp", "Battery level: $identifier $level")
+            }
 
             override fun hrNotificationReceived(
                 @NonNull identifier: String,
                 @NonNull data: PolarHrData
             ) {
                 heartRate?.value = data.hr
-                Log.d("MyApp", "HR: " + data.hr)
+                //Log.d("MyApp", "HR: " + data.hr)
             }
 
             override fun polarFtpFeatureReady(@NonNull s: String) {}

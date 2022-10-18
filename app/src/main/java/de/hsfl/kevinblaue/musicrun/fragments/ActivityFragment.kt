@@ -60,6 +60,9 @@ class ActivityFragment : Fragment() {
         }
         viewModel.heartRate.observe(viewLifecycleOwner) { heartRate ->
             binding?.puls?.text = heartRate.toString()
+            if (heartRate != null) {
+                viewModel.handleRangeData(heartRate)
+            }
         }
         viewModel.isUnderRange.observe(viewLifecycleOwner) { isUnderRange ->
             if (isUnderRange && viewModel.supportType.value == 1) {
@@ -95,12 +98,10 @@ class ActivityFragment : Fragment() {
         stopMusic()
         currentSongId += increment
         if (currentSongId < songs.size) {
-            Log.d("PLAY_MUSIC", "Set music")
             mediaPlayer = MediaPlayer.create(context, songs[currentSongId])
 
             // Play next song if song is completed or release media player
             mediaPlayer?.setOnCompletionListener {
-                Log.d("PLAY_MUSIC", "Set next song")
                 setMusic(1)
                 playMusic()
             }
@@ -109,7 +110,6 @@ class ActivityFragment : Fragment() {
 
     private fun playMusic() {
         if (binding?.btnPlay?.text!! == getString(R.string.play)) {
-            Log.d("PLAY_MUSIC", "Play")
             viewModel.startTraining()
             mediaPlayer?.start()
             binding?.btnPlay?.text = getString(R.string.running)
@@ -131,6 +131,9 @@ class ActivityFragment : Fragment() {
         // Write data to Database
         viewModel.saveStatistics()
 
+        // Set all statistics back to 0
+        viewModel.resetValues()
+
         // Go back to MainMenu
         parentFragmentManager.commit {
             replace<MainMenuFragment>(R.id.fragment_container_view, "MAIN_MENU")
@@ -141,21 +144,18 @@ class ActivityFragment : Fragment() {
 
     private fun pitchMusicUp() {
         if (mediaPlayer?.isPlaying == true) {
-            Log.d("PLAY_MUSIC", "Pitch up")
             mediaPlayer?.playbackParams = pitch.setPitch(1.25f)
         }
     }
 
     private fun pitchMusicDown() {
         if (mediaPlayer?.isPlaying == true) {
-            Log.d("PLAY_MUSIC", "Pitch down")
             mediaPlayer?.playbackParams = pitch.setPitch(0.75f)
         }
     }
 
     private fun normalizePitch() {
         if (mediaPlayer?.isPlaying == true) {
-            Log.d("PLAY_MUSIC", "Pitch normal")
             mediaPlayer?.playbackParams = pitch.setPitch(1f)
         }
     }

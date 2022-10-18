@@ -20,21 +20,14 @@ class ActivityViewModel : ViewModel() {
     private var timeOutOfRange: Long = 0
     var latestTimeStamp: Long = 0
     private var isInRange = false
-    val isUnderRange: MutableLiveData<Boolean> = MutableLiveData(false)
+    val isUnderRange: MutableLiveData<Boolean> = MutableLiveData(true)
     val isAboveRange: MutableLiveData<Boolean> = MutableLiveData(false)
     val supportType: MutableLiveData<Int> = MutableLiveData(-1)
     private var trainingStarted = false
 
     val description: MutableLiveData<String> = MutableLiveData("")
 
-    val heartRate: MediatorLiveData<Int?> = MediatorLiveData<Int?>().apply {
-        value = if (this.value == null) {
-            0
-        } else {
-            handleRangeData(this.value!!)
-            this.value
-        }
-    }
+    val heartRate: MediatorLiveData<Int?> = MediatorLiveData<Int?>()
 
     fun setRangeEntry (entry: RangeEntry) {
         description.value = entry.description
@@ -43,6 +36,7 @@ class ActivityViewModel : ViewModel() {
     }
 
     suspend fun saveStatistics() {
+        updateTimeOnTrainingStopped()
         statisticsRepository?.insertStatistic(
             Statistic(
                 0,
@@ -59,7 +53,7 @@ class ActivityViewModel : ViewModel() {
     }
 
     // Logic for statistics
-    private fun handleRangeData(value: Int) {
+    fun handleRangeData(value: Int) {
         // Look if the heartbeat is in range
         if (!trainingStarted){
             return
@@ -72,7 +66,11 @@ class ActivityViewModel : ViewModel() {
                 handleInRange()
                 isAboveRange.value = true
             }
-        } else if (value > rangeFrom || value < rangeTo) {
+        } else if (
+            (value > rangeFrom && isUnderRange.value == true)
+            ||
+            (value < rangeTo &&  isAboveRange.value == true)
+        ) {
             handleOutOfRange()
         }
     }
@@ -83,7 +81,7 @@ class ActivityViewModel : ViewModel() {
         isAboveRange.value = false
 
         val currentTimeStamp = Timestamp(System.currentTimeMillis()).time
-        timeOutOfRange += (latestTimeStamp - currentTimeStamp)
+        timeOutOfRange += currentTimeStamp - latestTimeStamp
         latestTimeStamp = currentTimeStamp
     }
 
@@ -92,7 +90,7 @@ class ActivityViewModel : ViewModel() {
         exceeds++
 
         val currentTimeStamp = Timestamp(System.currentTimeMillis()).time
-        timeInRange += (latestTimeStamp - currentTimeStamp)
+        timeInRange += currentTimeStamp - latestTimeStamp
         latestTimeStamp = currentTimeStamp
     }
 
@@ -103,5 +101,27 @@ class ActivityViewModel : ViewModel() {
 
     fun setRepository(application: Application) {
         statisticsRepository = StatisticsRepository(application)
+    }
+
+    fun resetValues() {
+        isUnderRange.value = true
+        isAboveRange.value = false
+        isInRange = false
+        timeInRange = 0
+        timeOutOfRange = 0
+        latestTimeStamp = 0
+        trainingStarted = false
+        exceeds = 0
+        rangeFrom = 0
+        rangeTo = 0
+    }
+
+    private fun updateTimeOnTrainingStopped() {
+        val currentTimeStamp = Timestamp(System.currentTimeMillis()).time
+        if (isInRange) {
+            timeInRange += currentTimeStamp - latestTimeStamp
+        } else {
+            timeOutOfRange += currentTimeStamp - latestTimeStamp
+        }
     }
 }

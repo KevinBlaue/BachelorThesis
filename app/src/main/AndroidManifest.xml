@@ -25,9 +25,7 @@
     <!-- Polar SDK needs the fine location permission to get results for Bluetooth scan. Request
     fine location permission on devices with API 30 (Android Q). Note, if your application
     needs location for other purposes than bluetooth then remove android:maxSdkVersion="30"-->
-    <uses-permission
-        android:name="android.permission.ACCESS_FINE_LOCATION"
-        android:maxSdkVersion="30" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <!-- The coarse location permission is needed, if fine location permission is requested. Request
       coarse location permission on devices with API 30 (Android Q). Note, if your application

@@ -8,11 +8,13 @@ import android.bluetooth.BluetoothManager
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.*
+import android.util.Log
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
@@ -23,8 +25,10 @@ import de.hsfl.kevinblaue.musicrun.viewmodels.MainMenuViewModel
 
 
 private const val PERMISSION_REQUEST_CODE = 1
-private const val CONNECTION_TYPE = 0
+private const val CONNECTION_TYPE = 1
 private const val POLAR = 1
+private const val DEVICE_ID = "B291691D"
+
 // ToDo: Mac Adresse herausfinden
 private const val ADDRESS = "E4:32:7F:1D:A7:BE"
 
@@ -74,12 +78,12 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                requestPermissions(arrayOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT), PERMISSION_REQUEST_CODE)
+                requestPermissions(arrayOf(BLUETOOTH_SCAN, BLUETOOTH_CONNECT, ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), 1)
             } else {
-                requestPermissions(arrayOf(ACCESS_FINE_LOCATION), PERMISSION_REQUEST_CODE)
+                requestPermissions(arrayOf(ACCESS_FINE_LOCATION, ACCESS_COARSE_LOCATION), 1)
             }
         }
-        requestPermissions(arrayOf(ACCESS_COARSE_LOCATION), PERMISSION_REQUEST_CODE)
+
     }
 
     override fun onResume() {
@@ -164,13 +168,23 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     }
 
     private fun connectToDevice() {
-        val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(ADDRESS)
-        bluetoothService = BluetoothService(handler, this)
-        if (device != null) {
-            bluetoothService?.connect(device)
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED
+        ) {
+
+
+
+            val device: BluetoothDevice? = bluetoothAdapter?.getRemoteDevice(ADDRESS)
+            bluetoothService = BluetoothService(handler, this)
+            if (device != null) {
+                bluetoothService?.connect(device)
+            }
         }
-        activityViewModel.heartRate.value = 75
-        mainMenuViewModel.beltConnected.value = true
+
+
+
     }
 
     private fun connectPolarDevice() {
@@ -179,8 +193,6 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         polarBluetoothService?.heartRate?.observe(this) { heartRate ->
             activityViewModel.heartRate.value = heartRate
         }
-        polarBluetoothService?.api?.autoConnectToDevice(
-            -50, null, null
-        )?.subscribe()
+        polarBluetoothService?.api?.connectToDevice(DEVICE_ID)
     }
 }
