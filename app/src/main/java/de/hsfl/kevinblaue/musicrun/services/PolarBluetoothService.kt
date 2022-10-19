@@ -1,7 +1,6 @@
 package de.hsfl.kevinblaue.musicrun.services
 
 import android.content.Context
-import android.os.Handler
 import android.util.Log
 import androidx.lifecycle.MutableLiveData
 import com.polar.sdk.api.PolarBleApi
@@ -14,7 +13,7 @@ import io.reactivex.rxjava3.annotations.NonNull
 import java.util.*
 
 
-class PolarBluetoothService(context: Context, private val handler: Handler) {
+class PolarBluetoothService(context: Context) {
     var api: PolarBleApi = defaultImplementation(context, PolarBleApi.ALL_FEATURES)
     var heartRate: MutableLiveData<Int>? = MutableLiveData(0)
 
@@ -26,7 +25,6 @@ class PolarBluetoothService(context: Context, private val handler: Handler) {
             }
 
             override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
-                handler.obtainMessage(MESSAGE_STATE_CHANGE, STATE_CONNECTED, -1).sendToTarget()
                 Log.d("MyApp", "CONNECTED: " + polarDeviceInfo.deviceId)
             }
 
@@ -64,7 +62,6 @@ class PolarBluetoothService(context: Context, private val handler: Handler) {
                 @NonNull data: PolarHrData
             ) {
                 heartRate?.value = data.hr
-                //Log.d("MyApp", "HR: " + data.hr)
             }
 
             override fun polarFtpFeatureReady(@NonNull s: String) {}
