@@ -11,6 +11,7 @@ import java.util.UUID
 data class Statistic(
     @PrimaryKey(autoGenerate = true) val id: Int,
     @ColumnInfo(name = "uuid") val uuid: UUID,
+    @ColumnInfo(name = "support_type") val supportType: Int,
     @ColumnInfo(name = "exceeds") val exceeds: Int,
     @ColumnInfo(name = "time_in_range") val timeInRange: Long,
     @ColumnInfo(name = "time_out_of_range") val timeOutOfRange: Long

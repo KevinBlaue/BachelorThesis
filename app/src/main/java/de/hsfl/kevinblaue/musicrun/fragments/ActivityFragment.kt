@@ -22,7 +22,7 @@ class ActivityFragment : Fragment() {
     private val viewModel: ActivityViewModel by activityViewModels()
     private var binding: FragmentActivityBinding? = null
     private var mediaPlayer: MediaPlayer? = null
-    private val pitch: PlaybackParams = PlaybackParams()
+    private val pitch: PlaybackParams = PlaybackParams().setPitch(1f)
     private var currentSongId: Int = 0
     private val songs: Array<Int> = arrayOf(
         R.raw.hip_hop_rock_beats_118000,
@@ -122,6 +122,7 @@ class ActivityFragment : Fragment() {
     private fun playMusic() {
         viewModel.startTraining()
         mediaPlayer?.start()
+        mediaPlayer?.playbackParams = pitch
         binding?.btnTraining?.text = getString(R.string.endTraining)
     }
 

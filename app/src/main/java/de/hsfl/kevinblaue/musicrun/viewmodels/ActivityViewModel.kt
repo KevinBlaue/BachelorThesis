@@ -41,6 +41,7 @@ class ActivityViewModel : ViewModel() {
             Statistic(
                 0,
                 uuid,
+                supportType.value!!,
                 exceeds,
                 timeInRange,
                 timeOutOfRange
