@@ -11,8 +11,7 @@
     <string name="pulsIcon">Puls Icon</string>
     <string name="puls">Puls</string>
     <string name="previous">Zurück</string>
-    <string name="running">Training läuft</string>
-    <string name="play">Musik spielen</string>
+    <string name="play">Training beginnen</string>
     <string name="next">Nächster</string>
     <string name="endTraining">Training stoppen</string>
     <string name="chooseRange">Bitte einen Pulsbereich wählen:</string>

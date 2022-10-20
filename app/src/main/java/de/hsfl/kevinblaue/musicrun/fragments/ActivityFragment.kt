@@ -3,7 +3,6 @@ package de.hsfl.kevinblaue.musicrun.fragments
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -48,10 +47,9 @@ class ActivityFragment : Fragment() {
         songs.shuffle()
 
         // Bind onlick listeners
-        binding?.btnPlay?.setOnClickListener { playMusic() }
-        binding?.btnStop?.setOnClickListener {
+        binding?.btnTraining?.setOnClickListener {
             lifecycleScope.launch {
-                stopTraining()
+                btnClickTraining()
             }
         }
 
@@ -113,20 +111,24 @@ class ActivityFragment : Fragment() {
         }
     }
 
-    private fun playMusic() {
-        if (binding?.btnPlay?.text!! == getString(R.string.play)) {
-            viewModel.startTraining()
-            mediaPlayer?.start()
-            binding?.btnPlay?.text = getString(R.string.running)
-            binding?.btnPlay?.isEnabled = true
+    private suspend fun btnClickTraining() {
+        if (binding?.btnTraining?.text!! == getString(R.string.play)) {
+            playMusic()
+        } else {
+            stopTraining()
         }
+    }
+
+    private fun playMusic() {
+        viewModel.startTraining()
+        mediaPlayer?.start()
+        binding?.btnTraining?.text = getString(R.string.endTraining)
     }
 
     private fun stopMusic () {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
-        binding?.btnPlay?.text = getString(R.string.play)
     }
 
     private suspend fun stopTraining() {

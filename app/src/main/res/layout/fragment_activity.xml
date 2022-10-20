@@ -66,23 +66,12 @@
         app:layout_constraintTop_toBottomOf="@+id/linearLayout3">
 
         <Button
-            android:id="@+id/btnPlay"
+            android:id="@+id/btnTraining"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:textSize="20sp"
-            android:text="@string/play"
-            style="?android:attr/buttonBarButtonStyle" />
-
-        <Button
-            android:id="@+id/btnStop"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:textSize="20sp"
-            android:text="@string/endTraining"
-            style="?android:attr/buttonBarButtonStyle" />
-
+            android:text="@string/play" />
 
     </LinearLayout>
 
