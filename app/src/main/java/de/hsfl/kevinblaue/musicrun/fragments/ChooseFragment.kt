@@ -31,9 +31,9 @@ class ChooseFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        chooseViewModel.list.observe(viewLifecycleOwner) {
+        chooseViewModel.list.observe(viewLifecycleOwner) { items ->
             val rv = binding?.recyclerView
-            val adapter = RecyclerViewAdapter(it) {
+            val adapter = RecyclerViewAdapter(items) {
                     entry -> clickBtnRange(entry)
             }
             rv?.adapter = adapter

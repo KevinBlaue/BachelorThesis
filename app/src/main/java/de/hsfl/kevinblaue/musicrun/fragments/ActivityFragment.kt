@@ -26,9 +26,11 @@ class ActivityFragment : Fragment() {
     private val pitch: PlaybackParams = PlaybackParams()
     private var currentSongId: Int = 0
     private val songs: Array<Int> = arrayOf(
-        R.raw.sound1,
-        R.raw.sound2,
-        R.raw.sound3,
+        R.raw.hip_hop_rock_beats_118000,
+        R.raw.bounce_114024,
+        R.raw.space_120280,
+        R.raw.electronic_future_beats_117997,
+        R.raw.powerful_energetic_sport_rock_trailer_122077,
     )
 
     override fun onCreateView(
@@ -41,6 +43,9 @@ class ActivityFragment : Fragment() {
         val heart = binding?.heart
         val anim = AnimationUtils.loadAnimation(context, R.anim.beat)
         heart?.startAnimation(anim)
+
+        // Shuffle the songs
+        songs.shuffle()
 
         // Bind onlick listeners
         binding?.btnPlay?.setOnClickListener { playMusic() }
@@ -160,3 +165,17 @@ class ActivityFragment : Fragment() {
         }
     }
 }
+
+/**
+ * Music sources:
+ * 1.
+ * Music by <a href="https://pixabay.com/de/users/qubesounds-24397640/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=118000">QubeSounds</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=118000">Pixabay</a>
+ * 2.
+ * Music by <a href="https://pixabay.com/de/users/coma-media-24399569/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=114024">Coma-Media</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=114024">Pixabay</a>
+ * 3.
+ * Music by <a href="https://pixabay.com/de/users/music_unlimited-27600023/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=120280">Music_Unlimited</a> from <a href="https://pixabay.com/music//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=120280">Pixabay</a>
+ * 4.
+ * Music by <a href="https://pixabay.com/de/users/qubesounds-24397640/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117997">QubeSounds</a> from <a href="https://pixabay.com//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=117997">Pixabay</a>
+ * 5.
+ * Music by <a href="https://pixabay.com/de/users/qubesounds-24397640/?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=122077">QubeSounds</a> from <a href="https://pixabay.com//?utm_source=link-attribution&amp;utm_medium=referral&amp;utm_campaign=music&amp;utm_content=122077">Pixabay</a>
+ */
