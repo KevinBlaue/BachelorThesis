@@ -13,7 +13,7 @@
     <string name="previous">Zurück</string>
     <string name="play">Training beginnen</string>
     <string name="next">Nächster</string>
-    <string name="endTraining">Training stoppen</string>
+    <string name="endTraining">Hauptmenü</string>
     <string name="chooseRange">Bitte einen Pulsbereich wählen:</string>
     <string name="element_text">Text</string>
 </resources>

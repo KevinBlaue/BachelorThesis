@@ -100,6 +100,14 @@ class ActivityViewModel : ViewModel() {
         trainingStarted = true
     }
 
+    suspend fun stopTraining() {
+        // Write data to Database
+        saveStatistics()
+
+        // Set all statistics back to 0
+        resetValues()
+    }
+
     fun setRepository(application: Application) {
         statisticsRepository = StatisticsRepository(application)
     }

@@ -3,10 +3,14 @@ package de.hsfl.kevinblaue.musicrun.fragments
 import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.os.Bundle
+import android.os.CountDownTimer
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
+import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
@@ -47,11 +51,7 @@ class ActivityFragment : Fragment() {
         songs.shuffle()
 
         // Bind onlick listeners
-        binding?.btnTraining?.setOnClickListener {
-            lifecycleScope.launch {
-                btnClickTraining()
-            }
-        }
+        binding?.btnTraining?.setOnClickListener { btnClickTraining() }
 
         return binding?.root
     }
@@ -111,11 +111,31 @@ class ActivityFragment : Fragment() {
         }
     }
 
-    private suspend fun btnClickTraining() {
+    private fun btnClickTraining() {
         if (binding?.btnTraining?.text!! == getString(R.string.play)) {
             playMusic()
+            object : CountDownTimer(300000, 300000) {
+                override fun onTick(millisUntilFinished: Long) {
+                }
+
+                override fun onFinish() {
+                    // Automatically stops training
+                    lifecycleScope.launch {
+                        // Stop and release Mediaplayer
+                        stopMusic()
+
+                        viewModel.stopTraining()
+
+                        binding?.btnTraining?.isEnabled = true
+
+                        Toast.makeText(context,
+                            "Trainigsdurchlauf beendet, drücke auf 'Hauptmenü'"
+                            , Toast.LENGTH_LONG).show()
+                    }
+                }
+            }.start()
         } else {
-            stopTraining()
+            toMainMenu()
         }
     }
 
@@ -124,6 +144,7 @@ class ActivityFragment : Fragment() {
         mediaPlayer?.start()
         mediaPlayer?.playbackParams = pitch
         binding?.btnTraining?.text = getString(R.string.endTraining)
+        binding?.btnTraining?.isEnabled = false
     }
 
     private fun stopMusic () {
@@ -132,16 +153,7 @@ class ActivityFragment : Fragment() {
         mediaPlayer = null
     }
 
-    private suspend fun stopTraining() {
-        // Stop and release Mediaplayer
-        stopMusic()
-
-        // Write data to Database
-        viewModel.saveStatistics()
-
-        // Set all statistics back to 0
-        viewModel.resetValues()
-
+    private fun toMainMenu() {
         // Go back to MainMenu
         parentFragmentManager.commit {
             replace<MainMenuFragment>(R.id.fragment_container_view, "MAIN_MENU")
