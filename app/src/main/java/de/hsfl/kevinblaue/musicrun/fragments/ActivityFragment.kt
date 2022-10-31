@@ -4,13 +4,12 @@ import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.os.Bundle
 import android.os.CountDownTimer
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AnimationUtils
 import android.widget.Toast
-import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
@@ -21,6 +20,7 @@ import de.hsfl.kevinblaue.musicrun.databinding.FragmentActivityBinding
 import de.hsfl.kevinblaue.musicrun.models.RangeEntry
 import de.hsfl.kevinblaue.musicrun.viewmodels.ActivityViewModel
 import kotlinx.coroutines.launch
+import kotlin.random.Random
 
 class ActivityFragment : Fragment() {
     private val viewModel: ActivityViewModel by activityViewModels()
@@ -48,7 +48,7 @@ class ActivityFragment : Fragment() {
         heart?.startAnimation(anim)
 
         // Shuffle the songs
-        songs.shuffle()
+        songs.shuffle(Random(Random.nextInt()))
 
         // Bind onlick listeners
         binding?.btnTraining?.setOnClickListener { btnClickTraining() }
@@ -124,7 +124,7 @@ class ActivityFragment : Fragment() {
                         // Stop and release Mediaplayer
                         stopMusic()
 
-                        viewModel.stopTraining()
+                        //viewModel.stopTraining()
 
                         binding?.btnTraining?.isEnabled = true
 
@@ -140,7 +140,7 @@ class ActivityFragment : Fragment() {
     }
 
     private fun playMusic() {
-        viewModel.startTraining()
+        //viewModel.startTraining()
         mediaPlayer?.start()
         mediaPlayer?.playbackParams = pitch
         binding?.btnTraining?.text = getString(R.string.endTraining)
