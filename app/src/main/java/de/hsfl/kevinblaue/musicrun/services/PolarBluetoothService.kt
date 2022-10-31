@@ -16,6 +16,7 @@ import java.util.*
 class PolarBluetoothService(context: Context) {
     var api: PolarBleApi = defaultImplementation(context, PolarBleApi.ALL_FEATURES)
     var heartRate: MutableLiveData<Int>? = MutableLiveData(0)
+    var connected: MutableLiveData<Boolean>? = MutableLiveData(false)
 
     init {
         api.setApiCallback(object : PolarBleApiCallback() {
@@ -26,6 +27,7 @@ class PolarBluetoothService(context: Context) {
 
             override fun deviceConnected(polarDeviceInfo: PolarDeviceInfo) {
                 Log.d("MyApp", "CONNECTED: " + polarDeviceInfo.deviceId)
+                connected?.value = true
             }
 
             override fun deviceConnecting(polarDeviceInfo: PolarDeviceInfo) {

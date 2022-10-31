@@ -34,8 +34,8 @@ class MainMenuFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        viewModel.beltConnected.observe(viewLifecycleOwner) {
-            if (it) {
+        viewModel.beltConnected.observe(viewLifecycleOwner) { connected ->
+            if (connected) {
                 binding?.infoText?.text = getString(R.string.bluetoothInformationConnected)
             }
         }

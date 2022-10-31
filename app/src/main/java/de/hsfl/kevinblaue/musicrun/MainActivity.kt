@@ -139,6 +139,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
         polarBluetoothService?.heartRate?.observe(this) { heartRate ->
             activityViewModel.heartRate.value = heartRate
         }
+        polarBluetoothService?.connected?.observe(this) { connected ->
+            mainMenuViewModel.beltConnected.value = connected
+        }
         polarBluetoothService?.api?.connectToDevice(DEVICE_ID)
     }
 
