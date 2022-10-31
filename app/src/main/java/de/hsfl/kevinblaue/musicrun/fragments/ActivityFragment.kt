@@ -124,7 +124,7 @@ class ActivityFragment : Fragment() {
                         // Stop and release Mediaplayer
                         stopMusic()
 
-                        //viewModel.stopTraining()
+                        viewModel.stopTraining()
 
                         binding?.btnTraining?.isEnabled = true
 
@@ -140,7 +140,7 @@ class ActivityFragment : Fragment() {
     }
 
     private fun playMusic() {
-        //viewModel.startTraining()
+        viewModel.startTraining()
         mediaPlayer?.start()
         mediaPlayer?.playbackParams = pitch
         binding?.btnTraining?.text = getString(R.string.endTraining)
