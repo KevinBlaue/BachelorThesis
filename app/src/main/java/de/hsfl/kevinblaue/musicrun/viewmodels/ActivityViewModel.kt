@@ -1,6 +1,7 @@
 package de.hsfl.kevinblaue.musicrun.viewmodels
 
 import android.app.Application
+import android.util.Log
 import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
@@ -16,11 +17,11 @@ class ActivityViewModel : ViewModel() {
     private var rangeFrom = 0
     private var rangeTo = 0
     private var exceeds = 0
-    private var timeInRange: Long = 0
-    private var timeOutOfRange: Long = 0
+    var sumInRange: Long = 0
+    var sumOutOfRange: Long = 0
     var latestTimeStamp: Long = 0
-    private var isInRange = false
-    val isUnderRange: MutableLiveData<Boolean> = MutableLiveData(true)
+    var isInRange = false
+    val isUnderRange: MutableLiveData<Boolean> = MutableLiveData(false)
     val isAboveRange: MutableLiveData<Boolean> = MutableLiveData(false)
     val supportType: MutableLiveData<Int> = MutableLiveData(-1)
     private var trainingStarted = false
@@ -35,18 +36,56 @@ class ActivityViewModel : ViewModel() {
         rangeTo = entry.rangeTo
     }
 
-    suspend fun saveStatistics() {
-        updateTimeOnTrainingStopped()
+    private suspend fun saveStatistics() {
         statisticsRepository?.insertStatistic(
             Statistic(
                 0,
                 uuid,
                 supportType.value!!,
                 exceeds,
-                timeInRange,
-                timeOutOfRange
+                sumInRange,
+                sumOutOfRange
             )
         )
+    }
+
+    fun startTraining() {
+        latestTimeStamp = Timestamp(System.currentTimeMillis()).time
+        trainingStarted = true
+
+        val currHeartRate = heartRate.value
+        if (currHeartRate!! < rangeFrom) {
+            isUnderRange.value = true
+        } else if (currHeartRate > rangeTo) {
+            isAboveRange.value = true
+        } else {
+            isInRange = true
+        }
+    }
+
+    suspend fun stopTraining() {
+        // Write data to Database
+        saveStatistics()
+
+        // Set all statistics back to 0
+        resetValues()
+    }
+
+    fun setRepository(application: Application) {
+        statisticsRepository = StatisticsRepository(application)
+    }
+
+    private fun resetValues() {
+        isUnderRange.value = false
+        isAboveRange.value = false
+        isInRange = false
+        sumInRange = 0
+        sumOutOfRange = 0
+        latestTimeStamp = 0
+        trainingStarted = false
+        exceeds = 0
+        rangeFrom = 0
+        rangeTo = 0
     }
 
     suspend fun createCSV() {
@@ -80,57 +119,10 @@ class ActivityViewModel : ViewModel() {
         isInRange = true
         isUnderRange.value = false
         isAboveRange.value = false
-
-        val currentTimeStamp = Timestamp(System.currentTimeMillis()).time
-        timeOutOfRange += currentTimeStamp - latestTimeStamp
-        latestTimeStamp = currentTimeStamp
     }
 
     private fun handleInRange() {
         isInRange = false
         exceeds++
-
-        val currentTimeStamp = Timestamp(System.currentTimeMillis()).time
-        timeInRange += currentTimeStamp - latestTimeStamp
-        latestTimeStamp = currentTimeStamp
-    }
-
-    fun startTraining() {
-        latestTimeStamp = Timestamp(System.currentTimeMillis()).time
-        trainingStarted = true
-    }
-
-    suspend fun stopTraining() {
-        // Write data to Database
-        saveStatistics()
-
-        // Set all statistics back to 0
-        resetValues()
-    }
-
-    fun setRepository(application: Application) {
-        statisticsRepository = StatisticsRepository(application)
-    }
-
-    fun resetValues() {
-        isUnderRange.value = true
-        isAboveRange.value = false
-        isInRange = false
-        timeInRange = 0
-        timeOutOfRange = 0
-        latestTimeStamp = 0
-        trainingStarted = false
-        exceeds = 0
-        rangeFrom = 0
-        rangeTo = 0
-    }
-
-    private fun updateTimeOnTrainingStopped() {
-        val currentTimeStamp = Timestamp(System.currentTimeMillis()).time
-        if (isInRange) {
-            timeInRange += currentTimeStamp - latestTimeStamp
-        } else {
-            timeOutOfRange += currentTimeStamp - latestTimeStamp
-        }
     }
 }

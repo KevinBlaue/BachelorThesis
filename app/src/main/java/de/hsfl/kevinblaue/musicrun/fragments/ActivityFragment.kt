@@ -114,8 +114,13 @@ class ActivityFragment : Fragment() {
     private fun btnClickTraining() {
         if (binding?.btnTraining?.text!! == getString(R.string.play)) {
             playMusic()
-            object : CountDownTimer(300000, 300000) {
+            object : CountDownTimer(300000, 1000) {
                 override fun onTick(millisUntilFinished: Long) {
+                    if (viewModel.isInRange) {
+                        viewModel.sumInRange += 1
+                    } else {
+                        viewModel.sumOutOfRange += 1
+                    }
                 }
 
                 override fun onFinish() {
@@ -140,11 +145,11 @@ class ActivityFragment : Fragment() {
     }
 
     private fun playMusic() {
-        viewModel.startTraining()
         mediaPlayer?.start()
         mediaPlayer?.playbackParams = pitch
         binding?.btnTraining?.text = getString(R.string.endTraining)
         binding?.btnTraining?.isEnabled = false
+        viewModel.startTraining()
     }
 
     private fun stopMusic () {
