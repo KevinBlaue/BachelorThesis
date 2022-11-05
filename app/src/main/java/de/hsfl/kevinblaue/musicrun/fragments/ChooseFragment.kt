@@ -41,6 +41,11 @@ class ChooseFragment : Fragment() {
         }
     }
 
+    /**
+     * OnClick handler for the list elements of [RecyclerViewAdapter]. Sets mandatory data for
+     * the [ActivityViewModel] and replaces the Fragment of the FragmentManager by [ActivityFragment].
+     * @param entry The chosen RangeEntry from the [ChooseViewModel.list].
+     */
     private fun clickBtnRange(entry: RangeEntry) {
         activityViewModel.setRangeEntry(entry)
         parentFragmentManager.commit {

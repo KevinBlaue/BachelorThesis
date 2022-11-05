@@ -17,9 +17,9 @@ import de.hsfl.kevinblaue.musicrun.viewmodels.MainMenuViewModel
 import kotlinx.coroutines.launch
 
 class MainMenuFragment : Fragment() {
-    private var binding: FragmentMainMenuBinding? = null
-    private val viewModel: MainMenuViewModel by activityViewModels()
     private val activityViewModel: ActivityViewModel by activityViewModels()
+    private val viewModel: MainMenuViewModel by activityViewModels()
+    private var binding: FragmentMainMenuBinding? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -41,15 +41,11 @@ class MainMenuFragment : Fragment() {
         }
     }
 
-    private fun clickBtnWithoutSupport() {
-        activityViewModel.supportType.value = SupportType.WITHOUT_SUPPORT.type
-        parentFragmentManager.commit {
-            replace<ChooseFragment>(R.id.fragment_container_view, "CHOOSE")
-            setReorderingAllowed(true)
-            addToBackStack(null)
-        }
-    }
-
+    /**
+     * OnClick handler for the first button in the [MainMenuFragment] UI.
+     * Sets the [SupportType] value for not supported training in the [ActivityFragment] and replaces
+     * the current Fragment of the FragmentManager with the [ChooseFragment].
+     */
     private fun clickBtnWithSupport() {
         activityViewModel.supportType.value = SupportType.WITH_SUPPORT.type
         parentFragmentManager.commit {
@@ -59,9 +55,28 @@ class MainMenuFragment : Fragment() {
         }
     }
 
+    /**
+     * OnClick handler for the second button in the [MainMenuFragment] UI.
+     * Sets the [SupportType] value for supported training in the [ActivityFragment] and replaces
+     * the current Fragment of the FragmentManager with the [ChooseFragment].
+     */
+    private fun clickBtnWithoutSupport() {
+        activityViewModel.supportType.value = SupportType.WITHOUT_SUPPORT.type
+        parentFragmentManager.commit {
+            replace<ChooseFragment>(R.id.fragment_container_view, "CHOOSE")
+            setReorderingAllowed(true)
+            addToBackStack(null)
+        }
+    }
+
+    /**
+     * OnClick handler for the hidden button of the app name in the [MainMenuFragment] UI.
+     * Starts the coroutine for the CSV data exportation.
+     */
     private fun exportDataToCSV() {
         lifecycleScope.launch {
-            activityViewModel.createCSV()
+            viewModel.createCSV()
+
         }
     }
 }

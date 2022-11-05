@@ -11,21 +11,29 @@ import java.io.FileWriter
 import java.io.IOException
 
 class StatisticsRepository(application: Application) {
-    var database: AppDatabase? = null
+    private var database: AppDatabase? = null
 
+    /**
+     * Writes [Statistic] data into the statistics table of the RoomDatabase.
+     */
     suspend fun insertStatistic(statistic: Statistic) {
         withContext(Dispatchers.IO) {
             database?.statisticDao()?.insertStatistic(statistic)
         }
     }
 
-    suspend fun loadStatistics(): List<Statistic>? {
+    /**
+     * Loads all the data of table statistics in RoomDatabase as a List of [Statistic].
+     */
+    private suspend fun loadStatistics(): List<Statistic>? {
         return withContext(Dispatchers.IO) {
             database?.statisticDao()?.statistics
         }
     }
 
-    // Creates a csv file with the current data in Download directory
+    /**
+     * Creates a csv file with the current statistics table data in Download directory.
+     */
     suspend fun writeStatisticsToCSV() {
         withContext(Dispatchers.IO) {
             val statistics = loadStatistics()
@@ -39,7 +47,7 @@ class StatisticsRepository(application: Application) {
                 val data = ArrayList<Array<String>>()
 
                 data.add(
-                    arrayOf("id", "uuid", "exceeds", "timeInRange", "timeOutOfRange")
+                    arrayOf("id", "uuid", "supportType", "exceeds", "timeInRange", "timeOutOfRange")
                 )
 
                 statistics?.forEach { statistic ->
@@ -47,6 +55,7 @@ class StatisticsRepository(application: Application) {
                         arrayOf(
                             statistic.id.toString(),
                             statistic.uuid.toString(),
+                            statistic.supportType.toString(),
                             statistic.exceeds.toString(),
                             statistic.timeInRange.toString(),
                             statistic.timeOutOfRange.toString()

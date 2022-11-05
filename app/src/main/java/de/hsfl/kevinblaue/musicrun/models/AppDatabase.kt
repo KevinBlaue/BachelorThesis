@@ -7,7 +7,6 @@ import androidx.room.RoomDatabase
 
 @Database(entities = [Statistic::class], version = 5)
 abstract class AppDatabase : RoomDatabase() {
-
     abstract fun statisticDao(): StatisticDao
 
     companion object {

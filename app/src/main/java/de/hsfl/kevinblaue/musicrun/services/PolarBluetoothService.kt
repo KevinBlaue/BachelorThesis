@@ -15,12 +15,11 @@ import java.util.*
 
 class PolarBluetoothService(context: Context) {
     var api: PolarBleApi = defaultImplementation(context, PolarBleApi.ALL_FEATURES)
-    var heartRate: MutableLiveData<Int>? = MutableLiveData(0)
     var connected: MutableLiveData<Boolean>? = MutableLiveData(false)
+    var heartRate: MutableLiveData<Int>? = MutableLiveData(0)
 
     init {
         api.setApiCallback(object : PolarBleApiCallback() {
-
             override fun blePowerStateChanged(powered: Boolean) {
                 Log.d("MyApp", "BLE power: $powered")
             }

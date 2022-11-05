@@ -4,7 +4,6 @@ import android.media.MediaPlayer
 import android.media.PlaybackParams
 import android.os.Bundle
 import android.os.CountDownTimer
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -15,19 +14,15 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.commit
 import androidx.fragment.app.replace
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.whenResumed
 import de.hsfl.kevinblaue.musicrun.R
 import de.hsfl.kevinblaue.musicrun.databinding.FragmentActivityBinding
-import de.hsfl.kevinblaue.musicrun.models.RangeEntry
 import de.hsfl.kevinblaue.musicrun.viewmodels.ActivityViewModel
 import kotlinx.coroutines.launch
 import kotlin.random.Random
 
 class ActivityFragment : Fragment() {
-    private val viewModel: ActivityViewModel by activityViewModels()
-    private var binding: FragmentActivityBinding? = null
-    private var mediaPlayer: MediaPlayer? = null
     private val pitch: PlaybackParams = PlaybackParams().setPitch(1f)
-    private var currentSongId: Int = 0
     private val songs: Array<Int> = arrayOf(
         R.raw.hip_hop_rock_beats_118000,
         R.raw.bounce_114024,
@@ -35,24 +30,21 @@ class ActivityFragment : Fragment() {
         R.raw.electronic_future_beats_117997,
         R.raw.powerful_energetic_sport_rock_trailer_122077,
     )
+    private val viewModel: ActivityViewModel by activityViewModels()
+    private var binding: FragmentActivityBinding? = null
+    private var currentSongId: Int = 0
+    private var mediaPlayer: MediaPlayer? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentActivityBinding.inflate(inflater, container, false)
-
-        // Set heartbeat animation
         val heart = binding?.heart
         val anim = AnimationUtils.loadAnimation(context, R.anim.beat)
         heart?.startAnimation(anim)
-
-        // Shuffle the songs
-        songs.shuffle(Random(Random.nextInt()))
-
-        // Bind onlick listeners
+        shuffleSongs()
         binding?.btnTraining?.setOnClickListener { btnClickTraining() }
-
         return binding?.root
     }
 
@@ -62,9 +54,9 @@ class ActivityFragment : Fragment() {
             binding?.rangeText?.text = it
         }
         viewModel.heartRate.observe(viewLifecycleOwner) { heartRate ->
-            binding?.puls?.text = heartRate.toString()
-            if (heartRate != null) {
-                viewModel.handleRangeData(heartRate)
+            heartRate?.let { hr ->
+                binding?.puls?.text = hr.toString()
+                viewModel.handleHeartRate(hr)
             }
         }
         viewModel.isUnderRange.observe(viewLifecycleOwner) { isUnderRange ->
@@ -81,85 +73,126 @@ class ActivityFragment : Fragment() {
                 normalizePitch()
             }
         }
-
-        // Set first song
        setMusic()
     }
 
-    override fun onStop() {
-        super.onStop()
-        stopMusic()
-        viewModel.setRangeEntry(
-            RangeEntry(
-                description = "",
-                rangeFrom = 0,
-                rangeTo = 0
-            ))
+    /**
+     * OnClick handler for the button in dependence of the text.
+     */
+    private fun btnClickTraining() {
+        if (binding?.btnTraining?.text == getString(R.string.play)) {
+            startTraining()
+        } else {
+            toMainMenu()
+        }
     }
 
+    /**
+     * Sets a normal [pitch] (value 0) and gives it to the [mediaPlayer].
+     */
+    private fun normalizePitch() {
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.playbackParams = pitch.setPitch(1f)
+        }
+    }
+
+    /**
+     * Sets a new **higher** [pitch] and gives it to the [mediaPlayer].
+     */
+    private fun pitchMusicUp() {
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.playbackParams = pitch.setPitch(1.25f)
+        }
+    }
+
+    /**
+     * Sets a new **lower** [pitch] and gives it to the [mediaPlayer].
+     */
+    private fun pitchMusicDown() {
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.playbackParams = pitch.setPitch(0.75f)
+        }
+    }
+
+    /**
+     * Starts the [mediaPlayer] and sets the latest [pitch] for the resource.
+     */
+    private fun playMusic() {
+        mediaPlayer?.start()
+        mediaPlayer?.playbackParams = pitch
+    }
+
+    /**
+     * Prepares the [mediaPlayer] for the songs. After a song is played, the next from the playlist
+     * is automatically selected because the method calls itself by incrementing the current song by 1.
+     * @param increment Is 0 without a parameter e.g. when the first song should start and another number
+     * for any other song in the list.
+     */
     private fun setMusic(increment: Int = 0) {
-        stopMusic()
         currentSongId += increment
         if (currentSongId < songs.size) {
             mediaPlayer = MediaPlayer.create(context, songs[currentSongId])
-
-            // Play next song if song is completed or release media player
-            mediaPlayer?.setOnCompletionListener {
+            mediaPlayer?.setOnCompletionListener { mediaPlayer ->
+                mediaPlayer.stop()
+                mediaPlayer.release()
                 setMusic(1)
                 playMusic()
             }
         }
     }
 
-    private fun btnClickTraining() {
-        if (binding?.btnTraining?.text!! == getString(R.string.play)) {
-            playMusic()
-            object : CountDownTimer(300000, 1000) {
-                override fun onTick(millisUntilFinished: Long) {
-                    if (viewModel.isInRange) {
-                        viewModel.sumInRange += 1
-                    } else {
-                        viewModel.sumOutOfRange += 1
-                    }
-                }
+    /**
+     * Sets the song titles in a random order of [songs] array.
+     */
+    private fun shuffleSongs() {
+        songs.shuffle(Random(Random.nextInt()))
+    }
 
-                override fun onFinish() {
-                    // Automatically stops training
-                    lifecycleScope.launch {
-                        // Stop and release Mediaplayer
-                        stopMusic()
+    /**
+     * Initiates the start of the training by disabling the button, starting the music by [playMusic]
+     * and setting a [CountDownTimer] that increases the values for [ActivityViewModel.timeInRange]
+     * and [ActivityViewModel.timeOutOfRange] when [CountDownTimer.onTick] is called. When the
+     * [CountDownTimer]'s [CountDownTimer.onFinish] is called, the mechanics for
+     * [ActivityViewModel.stopTraining] are called and a [Toast] is shown.
+     */
+    private fun startTraining() {
+        binding?.btnTraining?.text = getString(R.string.endTraining)
+        binding?.btnTraining?.isEnabled = false
+        playMusic()
+        viewModel.startTraining()
+        object : CountDownTimer(TRAINING_TIME, INTERVAL) {
+            override fun onTick(millisUntilFinished: Long) {
+                viewModel.handleOnTick()
+            }
 
-                        viewModel.stopTraining()
-
+            override fun onFinish() {
+                stopMusic()
+                lifecycleScope.launch {
+                    viewModel.stopTraining()
+                    whenResumed {
                         binding?.btnTraining?.isEnabled = true
-
                         Toast.makeText(context,
                             "Trainigsdurchlauf beendet, drücke auf 'Hauptmenü'"
                             , Toast.LENGTH_LONG).show()
                     }
                 }
-            }.start()
-        } else {
-            toMainMenu()
-        }
+            }
+        }.start()
     }
 
-    private fun playMusic() {
-        mediaPlayer?.start()
-        mediaPlayer?.playbackParams = pitch
-        binding?.btnTraining?.text = getString(R.string.endTraining)
-        binding?.btnTraining?.isEnabled = false
-        viewModel.startTraining()
-    }
-
+    /**
+     * Stops the music and releases the [mediaPlayer].
+     */
     private fun stopMusic () {
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
     }
 
+    /**
+     * Method replaces [MainMenuFragment] as new Fragment in FragmentManager.
+     */
     private fun toMainMenu() {
-        // Go back to MainMenu
         parentFragmentManager.commit {
             replace<MainMenuFragment>(R.id.fragment_container_view, "MAIN_MENU")
             setReorderingAllowed(true)
@@ -167,22 +200,9 @@ class ActivityFragment : Fragment() {
         }
     }
 
-    private fun pitchMusicUp() {
-        if (mediaPlayer?.isPlaying == true) {
-            mediaPlayer?.playbackParams = pitch.setPitch(1.25f)
-        }
-    }
-
-    private fun pitchMusicDown() {
-        if (mediaPlayer?.isPlaying == true) {
-            mediaPlayer?.playbackParams = pitch.setPitch(0.75f)
-        }
-    }
-
-    private fun normalizePitch() {
-        if (mediaPlayer?.isPlaying == true) {
-            mediaPlayer?.playbackParams = pitch.setPitch(1f)
-        }
+    companion object {
+        const val TRAINING_TIME: Long = 300000 // 5 min
+        const val INTERVAL: Long = 1000 // 1 sec
     }
 }
 
