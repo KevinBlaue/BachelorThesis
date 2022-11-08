@@ -7,6 +7,11 @@ import de.hsfl.kevinblaue.musicrun.models.RangeEntry
 class ChooseViewModel : ViewModel() {
     private val valueRanges: List<RangeEntry> = listOf(
         RangeEntry(
+            description = "100 bis 109 bpm",
+            rangeFrom = 100,
+            rangeTo = 109
+        ),
+        RangeEntry(
             description = "110 bis 119 bpm",
             rangeFrom = 110,
             rangeTo = 119

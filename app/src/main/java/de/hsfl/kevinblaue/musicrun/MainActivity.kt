@@ -25,7 +25,7 @@ import de.hsfl.kevinblaue.musicrun.viewmodels.MainMenuViewModel
 class MainActivity : AppCompatActivity(R.layout.activity_main) {
     private val activityViewModel: ActivityViewModel by viewModels()
     private val mainMenuViewModel: MainMenuViewModel by viewModels()
-    private val repository = StatisticsRepository(this.application)
+    private var repository: StatisticsRepository? = null
     private val requestBluetooth =
         registerForActivityResult(
             ActivityResultContracts.StartActivityForResult()
@@ -40,8 +40,9 @@ class MainActivity : AppCompatActivity(R.layout.activity_main) {
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        activityViewModel.setRepository(repository)
-        mainMenuViewModel.setRepository(repository)
+        repository = StatisticsRepository(this.application)
+        activityViewModel.setRepository(repository!!)
+        mainMenuViewModel.setRepository(repository!!)
 
         if (savedInstanceState == null) {
             toMainMenu()

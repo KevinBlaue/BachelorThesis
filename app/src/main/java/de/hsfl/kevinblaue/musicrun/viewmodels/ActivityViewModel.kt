@@ -11,7 +11,7 @@ import java.util.*
 class ActivityViewModel : ViewModel() {
     private val uuid: UUID = UUID.randomUUID()
     private var exceeds = 0
-    private var isInRange = false
+    private var inRange = false
     private var rangeFrom = 0
     private var rangeTo = 0
     private var statisticsRepository: StatisticsRepository? = null
@@ -20,8 +20,8 @@ class ActivityViewModel : ViewModel() {
     private var trainingStarted = false
     val description: MutableLiveData<String> = MutableLiveData("")
     val heartRate: MediatorLiveData<Int?> = MediatorLiveData<Int?>()
-    val isUnderRange: MutableLiveData<Boolean> = MutableLiveData(false)
-    val isAboveRange: MutableLiveData<Boolean> = MutableLiveData(false)
+    val underRange: MutableLiveData<Boolean> = MutableLiveData(false)
+    val aboveRange: MutableLiveData<Boolean> = MutableLiveData(false)
     val supportType: MutableLiveData<Int> = MutableLiveData(-1)
 
     /**
@@ -55,43 +55,42 @@ class ActivityViewModel : ViewModel() {
     }
 
     /**
-     * Resets all values for another training
-     */
-    private fun resetValues() {
-        isUnderRange.value = false
-        isAboveRange.value = false
-        description.value = ""
-        isInRange = false
-        timeInRange = 0
-        timeOutOfRange = 0
-        trainingStarted = false
-        exceeds = 0
-        rangeFrom = 0
-        rangeTo = 0
-    }
-
-    /**
      * Handles the case when a person gets in the chosen range
      */
     private fun handleInRange() {
-        isInRange = true
-        isUnderRange.value = false
-        isAboveRange.value = false
+        inRange = true
+        underRange.value = false
+        aboveRange.value = false
     }
 
     /**
      * Handles the case when a person gets out of the chosen range
      */
     private fun handleOutOfRange() {
-        isInRange = false
+        inRange = false
         exceeds++
     }
 
+    private fun isAboveRange(heartRate: Int): Boolean {
+        aboveRange.value = inRange && heartRate > rangeTo
+        return aboveRange.value!!
+    }
+
+    private fun isInRange(heartRate: Int): Boolean {
+        return heartRate > rangeFrom && underRange.value == true
+                || heartRate < rangeTo &&  aboveRange.value == true
+    }
+
+    private fun isUnderRange(heartRate: Int): Boolean {
+        underRange.value = inRange && heartRate < rangeFrom
+        return underRange.value!!
+    }
+
     /**
-     * Increases the in and out of range times every second in dependence of [isInRange]
+     * Increases the in and out of range times every second in dependence of [inRange]
      */
     fun handleOnTick() {
-        if (isInRange) {
+        if (inRange) {
             incrementTimeInRange()
         } else {
             incrementTimeOutOfRange()
@@ -106,19 +105,9 @@ class ActivityViewModel : ViewModel() {
         if (!trainingStarted){
             return
         }
-        if (isInRange) {
-            if (heartRate < rangeFrom) {
-                handleOutOfRange()
-                isUnderRange.value = true
-            } else if (heartRate > rangeTo) {
-                handleOutOfRange()
-                isAboveRange.value = true
-            }
-        } else if (
-            (heartRate > rangeFrom && isUnderRange.value == true)
-            ||
-            (heartRate < rangeTo &&  isAboveRange.value == true)
-        ) {
+        if (isAboveRange(heartRate) || isUnderRange(heartRate)) {
+            handleOutOfRange()
+        } else if (isInRange(heartRate)) {
             handleInRange()
         }
     }
@@ -142,11 +131,11 @@ class ActivityViewModel : ViewModel() {
         trainingStarted = true
         heartRate.value?.let { currentHeartRate ->
             if (currentHeartRate < rangeFrom) {
-                isUnderRange.value = true
+                underRange.value = true
             } else if (currentHeartRate > rangeTo) {
-                isAboveRange.value = true
+                aboveRange.value = true
             } else {
-                isInRange = true
+                inRange = true
             }
         }
     }
@@ -165,5 +154,21 @@ class ActivityViewModel : ViewModel() {
      */
     fun setRepository(repository: StatisticsRepository) {
         statisticsRepository = repository
+    }
+
+    /**
+     * Resets all values for another training
+     */
+    fun resetValues() {
+        underRange.value = false
+        aboveRange.value = false
+        description.value = ""
+        inRange = false
+        timeInRange = 0
+        timeOutOfRange = 0
+        trainingStarted = false
+        exceeds = 0
+        rangeFrom = 0
+        rangeTo = 0
     }
 }

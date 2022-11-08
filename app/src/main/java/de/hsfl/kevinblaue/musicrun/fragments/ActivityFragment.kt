@@ -59,14 +59,14 @@ class ActivityFragment : Fragment() {
                 viewModel.handleHeartRate(hr)
             }
         }
-        viewModel.isUnderRange.observe(viewLifecycleOwner) { isUnderRange ->
+        viewModel.underRange.observe(viewLifecycleOwner) { isUnderRange ->
             if (isUnderRange && viewModel.supportType.value == 1) {
                 pitchMusicDown()
             } else {
                 normalizePitch()
             }
         }
-        viewModel.isAboveRange.observe(viewLifecycleOwner) { isAboveRange ->
+        viewModel.aboveRange.observe(viewLifecycleOwner) { isAboveRange ->
             if (isAboveRange && viewModel.supportType.value == 1) {
                 pitchMusicUp()
             } else {
@@ -74,6 +74,12 @@ class ActivityFragment : Fragment() {
             }
         }
        setMusic()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        stopMusic()
+        viewModel.resetValues()
     }
 
     /**
