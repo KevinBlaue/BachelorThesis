@@ -72,8 +72,12 @@ class ActivityViewModel : ViewModel() {
     }
 
     private fun isAboveRange(heartRate: Int): Boolean {
-        aboveRange.value = inRange && heartRate > rangeTo
-        return aboveRange.value!!
+        return if (inRange && heartRate > rangeTo) {
+            aboveRange.value = true
+            true
+        } else {
+            false
+        }
     }
 
     private fun isInRange(heartRate: Int): Boolean {
@@ -82,8 +86,12 @@ class ActivityViewModel : ViewModel() {
     }
 
     private fun isUnderRange(heartRate: Int): Boolean {
-        underRange.value = inRange && heartRate < rangeFrom
-        return underRange.value!!
+        return if (inRange && heartRate < rangeFrom) {
+            underRange.value = true
+            true
+        } else {
+            false
+        }
     }
 
     /**
